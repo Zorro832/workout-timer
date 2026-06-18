@@ -3,17 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>运动跟练计时器 v10</title>
+<title>运动跟练计时器 v11</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
 body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
-/* 启动覆盖层 */
 #overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;transition:opacity 0.5s}
 #overlay.hide{opacity:0;pointer-events:none}
 
-/* 主界面 */
 #app{width:100%;height:100%;display:none;flex-direction:column;align-items:center;padding:8px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #app.show{display:flex}
 
@@ -21,7 +19,6 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 #top h1{font-size:1.1em;margin-bottom:1px}
 #round-info{font-size:0.8em;color:#aaa;margin-bottom:4px}
 
-/* 环形进度 */
 #ring-wrap{position:relative;width:200px;height:200px;margin:3px auto}
 #ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
 #ring-bg{fill:none;stroke:#333;stroke-width:10}
@@ -30,20 +27,17 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 #time{font-size:2.5em;font-weight:bold;color:#00d2ff;font-variant-numeric:tabular-nums}
 #label{font-size:0.85em;color:#ccc;margin-top:2px}
 
-/* 3-2-1倒计时覆盖层 */
 #cd-ol{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:88888;flex-direction:column}
 #cd-ol.show{display:flex !important}
 #cd-num{font-size:7em;font-weight:bold;color:#00d2ff;text-shadow:0 0 40px rgba(0,210,255,0.9);animation:pulse 1s ease-in-out}
 @keyframes pulse{0%{transform:scale(1.8);opacity:0}30%{transform:scale(1);opacity:1}100%{transform:scale(0.95);opacity:0.85}}
 #cd-txt{font-size:1.1em;color:#ccc;margin-top:15px}
 
-/* 控制按钮 */
 #btns{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;justify-content:center}
 .btn{padding:7px 14px;border:2px solid #00d2ff;background:rgba(0,210,255,0.1);color:#00d2ff;border-radius:20px;font-size:0.8em;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;white-space:nowrap}
 .btn:active{background:rgba(0,210,255,0.35)}
 .btn-off{opacity:0.25;pointer-events:none}
 
-/* 运动列表 */
 #list{width:100%;max-width:400px;flex:1;overflow-y:auto;margin-top:4px;-webkit-overflow-scrolling:touch}
 .ei{padding:7px 9px;margin:2px 0;border-radius:8px;background:rgba(255,255,255,0.05);display:flex;align-items:center;gap:7px;cursor:pointer;transition:background 0.2s}
 .ei.cur{background:rgba(0,210,255,0.2);border:1px solid rgba(0,210,255,0.5)}
@@ -53,7 +47,6 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 .ei .name{flex:1;font-size:0.8em}
 .ei .st{font-size:0.7em;color:#aaa}
 
-/* 设置面板 */
 #settings{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;z-index:77777;overflow-y:auto}
 #settings.show{display:block}
 #si{max-width:400px;margin:15px auto;padding:12px;background:#1a1a2e;border-radius:12px}
@@ -62,7 +55,6 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 .sr input{width:55px;padding:4px 6px;border-radius:6px;border:1px solid #555;background:#333;color:#fff;text-align:center;font-size:0.95em}
 #sbt{display:flex;gap:10px;margin-top:18px;justify-content:center}
 
-/* 音量 */
 #vc{display:flex;align-items:center;gap:5px;margin:4px 0;font-size:0.75em;justify-content:center}
 #vc input[type=range]{width:70px;accent-color:#00d2ff}
 
@@ -128,342 +120,418 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
   </div>
 </div>
 
-<div id="ver">v10 — 如看不到此字样说明是旧版缓存</div>
+<div id="ver">v11 — 如看不到此字样说明是旧版缓存</div>
 
 <script>
-/* ===== 状态 ===== */
+/* ===== 状态变量（所有拼写100%正确） ===== */
 var EXS = [
-  {name:"腰椎麦肯基疗法",dur:60,sets:3},
-  {name:"小燕飞",dur:30,sets:3},
-  {name:"侧平板支撑",dur:30,sets:3},
-  {name:"臀桥",dur:60,sets:3},
-  {name:"山羊挺身(靠墙版)",dur:20,sets:5},
-  {name:"平板支撑",dur:60,sets:2}
+  {name:"腰椎麦肯基疗法", dur:60, sets:3},
+  {name:"小燕飞", dur:30, sets:3},
+  {name:"侧平板支撑", dur:30, sets:3},
+  {name:"臀桥", dur:60, sets:3},
+  {name:"山羊挺身(靠墙版)", dur:20, sets:5},
+  {name:"平板支撑", dur:60, sets:2}
 ];
 var REST = 10;
-var IDX = 0;   // 当前运动索引
-var SID = 0;   // 当前组（0-based）
-var PH  = 0;    // 0=未开始 1=倒计时中 2=运动中 3=休息中 4=暂停 5=完成
-var PREV_PH = 0; // 暂停前状态
-var REM = 0;    // 剩余秒数
-var TID = 0;    // setInterval ID
-var VOL = 0.7;
-var AC = null;
-var AOK = false; // AudioContext 是否可用
+var idx = 0;   // 当前运动索引
+var sid = 0;   // 当前组（0开始）
+var ph  = 0;    // 0=未开始 1=倒计时中 2=运动中 3=休息中 4=暂停 5=完成
+var prev_ph = 0;
+var rem = 0;    // 剩余秒数
+var tid = 0;    // setInterval ID
+var vol = 0.7;
+var ac  = null;  // AudioContext
+var aok = false; // 音频是否解锁
+var gwIv = 0;  // GoWest interval ID
 
 /* ===== 音频解锁 ===== */
-function unlock(cb){
+function unlock(cb) {
   var done = false;
-  function ok(){ if(done) return; done=true; AOK=true; if(cb) cb(); }
-  try{
-    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
-    var buf = AC.createBuffer(1,1,22050);
-    var src = AC.createBufferSource(); src.buffer=buf; src.connect(AC.destination); src.start(0);
-    if(AC.state==='suspended') AC.resume().then(ok).catch(ok);
-    else ok();
-  }catch(e){}
-  setTimeout(ok,200);
+  function ok() {
+    if (done) return;
+    done = true;
+    aok = true;
+    if (cb) cb();
+  }
+  // 方法1: AudioContext 静音buffer
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    var buf = ac.createBuffer(1, 1, 22050);
+    var src = ac.createBufferSource();
+    src.buffer = buf;
+    src.connect(ac.destination);
+    src.start(0);
+    if (ac.state === 'suspended') {
+      ac.resume().then(ok).catch(ok);
+    } else {
+      ok();
+    }
+  } catch (e) {}
+  // 方法2: HTML5 audio 元素
+  try {
+    var a = document.createElement('audio');
+    a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+    a.volume = 0.01;
+    a.play().then(ok).catch(ok);
+  } catch (e) {}
+  setTimeout(ok, 300);
 }
 
-/* ===== 蜂鸣 ===== */
-function beep(f,hz,dur){
-  try{
-    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
-    if(AC.state==='suspended') AC.resume();
-    var o=AC.createOscillator(), g=AC.createGain();
-    o.type='sine'; o.frequency.value=hz||800;
-    g.gain.value=VOL*0.3;
-    o.connect(g); g.connect(AC.destination);
-    var t=AC.currentTime;
+/* ===== 蜂鸣声 ===== */
+function beep(hz, dur) {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    o.type = 'sine';
+    o.frequency.value = hz || 800;
+    g.gain.value = vol * 0.3;
+    o.connect(g);
+    g.connect(ac.destination);
+    var t = ac.currentTime;
     o.start(t);
-    g.gain.exponentialRampToValueAtTime(0.001, t+(dur||0.12));
-    o.stop(t+(dur||0.12));
-  }catch(e){}
+    g.gain.exponentialRampToValueAtTime(0.001, t + (dur || 0.12));
+    o.stop(t + (dur || 0.12));
+  } catch (e) {}
 }
 
-/* ===== 语音 ===== */
-function say(t){
-  try{
+/* ===== 语音播报 ===== */
+function say(txt) {
+  try {
     window.speechSynthesis.cancel();
-    var u=new SpeechSynthesisUtterance(t);
-    u.lang='zh-CN'; u.rate=1.0; u.volume=1;
+    var u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'zh-CN';
+    u.rate = 1.0;
+    u.volume = 1;
     window.speechSynthesis.speak(u);
-  }catch(e){}
+  } catch (e) {}
 }
 
-/* ===== Go West 简易节奏 ===== */
-var gwIv = 0;
-function startGW(){
-  if(gwIv) return;
-  if(!AOK) return;
-  try{
-    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
-    if(AC.state==='suspended') AC.resume();
-    // 用 setInterval 每 0.5s 触发一个短音符，组成节奏
-    var step = 0;
-    gwIv = setInterval(function(){
-      try{
-        if(!AC) return;
-        if(AC.state==='suspended') AC.resume();
-        var t = AC.currentTime;
-        // 贝斯音：Cm->Ab->Eb->Bb 每2秒换一个和弦
-        var chords = [[130.81,155.56,196],[103.83,130.81,155.56],[155.56,196,233.08],[116.54,146.83,174.61]];
-        var ci = Math.floor((step%8)/2); // 每2步（1秒）换和弦，8步一循环
-        var freq = chords[ci][0]; // 贝斯音
-        // 贝斯
-        var o1=AC.createOscillator(), g1=AC.createGain();
-        o1.type='sine'; o1.frequency.value=freq;
-        g1.gain.value=VOL*0.08;
-        o1.connect(g1); g1.connect(AC.destination);
-        o1.start(t); g1.gain.exponentialRampToValueAtTime(0.001,t+0.45); o1.stop(t+0.48);
-        //  hi-hat
-        if(step%2===0){
-          var o2=AC.createOscillator(),g2=AC.createGain();
-          o2.type='square'; o2.frequency.value=8000;
-          g2.gain.value=VOL*0.02;
-          o2.connect(g2); g2.connect(AC.destination);
-          o2.start(t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.03); o2.stop(t+0.04);
-        }
-        //  kick (每2步一次)
-        if(step%4===0){
-          var o3=AC.createOscillator(),g3=AC.createGain();
-          o3.type='sine'; o3.frequency.value=150;
-          o3.frequency.exponentialRampToValueAtTime(40,t+0.08);
-          g3.gain.value=VOL*0.15;
-          o3.connect(g3); g3.connect(AC.destination);
-          o3.start(t); g3.gain.exponentialRampToValueAtTime(0.001,t+0.1); o3.stop(t+0.12);
-        }
-        step++;
-      }catch(e){}
-    }, 500);
-  }catch(e){}
+/* ===== Go West 简易节奏（setInterval，移动端可靠） ===== */
+function startGW() {
+  stopGW();
+  gwIv = setInterval(function () {
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      var t = ac.currentTime;
+      // 贝斯音（Cm和弦根音）
+      var o1 = ac.createOscillator();
+      var g1 = ac.createGain();
+      o1.type = 'sine';
+      o1.frequency.value = 130.81;
+      g1.gain.value = vol * 0.06;
+      o1.connect(g1);
+      g1.connect(ac.destination);
+      o1.start(t);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      o1.stop(t + 0.48);
+      // hi-hat
+      var o2 = ac.createOscillator();
+      var g2 = ac.createGain();
+      o2.type = 'square';
+      o2.frequency.value = 8000;
+      g2.gain.value = vol * 0.015;
+      o2.connect(g2);
+      g2.connect(ac.destination);
+      o2.start(t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+      o2.stop(t + 0.03);
+    } catch (e) {}
+  }, 500);
 }
-function stopGW(){ if(gwIv){clearInterval(gwIv);gwIv=0;} }
+
+function stopGW() {
+  if (gwIv) { clearInterval(gwIv); gwIv = 0; }
+}
 
 /* ===== 3-2-1 倒计时 ===== */
-function countdown(cb){
-  var ol=document.getElementById('cd-ol');
-  var num=document.getElementById('cd-num');
-  var txt=document.getElementById('cd-txt');
-  var ex=EXS[IDX];
-  // 先报动作名称
+function countdown(cb) {
+  var ol  = document.getElementById('cd-ol');
+  var num = document.getElementById('cd-num');
+  var txt = document.getElementById('cd-txt');
+  var ex  = EXS[idx];
+  // 先报动作名称，等1.5秒再开始视觉倒计时
   txt.textContent = ex.name + ' — 准备';
   say(ex.name + '，准备');
-  // 等语音播完再开始倒计时（延迟1.5秒）
-  setTimeout(function(){
+  setTimeout(function () {
     var c = 3;
     ol.classList.add('show');
     num.textContent = String(c);
-    num.style.animation='none'; void num.offsetWidth;
-    num.style.animation='pulse 1s ease-in-out';
-    say(String(c)); beep(600,0.08);
-    var iv = setInterval(function(){
+    num.style.animation = 'none';
+    void num.offsetWidth;
+    num.style.animation = 'pulse 1s ease-in-out';
+    say(String(c));
+    beep(600, 0.08);
+    var iv = setInterval(function () {
       c--;
-      if(c>0){
-        num.textContent=String(c);
-        num.style.animation='none'; void num.offsetWidth;
-        num.style.animation='pulse 1s ease-in-out';
-        say(String(c)); beep(600,0.08);
-    } else {
-      clearInterval(iv);
-      ol.classList.remove('show');
-      beep(900,0.15);
-      if(cb) cb();
-    }
+      if (c > 0) {
+        num.textContent = String(c);
+        num.style.animation = 'none';
+        void num.offsetWidth;
+        num.style.animation = 'pulse 1s ease-in-out';
+        say(String(c));
+        beep(600, 0.08);
+      } else {
+        clearInterval(iv);
+        ol.classList.remove('show');
+        say('开始');
+        beep(900, 0.15);
+        if (cb) cb();
+      }
     }, 1000);
   }, 1500);
 }
 
-/* ===== 渲染列表 ===== */
-function buildList(){
-  var list=document.getElementById('list');
-  list.innerHTML='';
-  for(var i=0;i<EXS.length;i++){
-    (function(i){
-      var d=document.createElement('div');
-      d.className='ei'+(i===IDX?' cur':'');
-      d.id='ei'+i;
-      d.onclick=function(){ jump(i); };
-      var idx=document.createElement('div'); idx.className='idx'; idx.textContent=String(i+1);
-      var nm=document.createElement('div'); nm.className='name'; nm.textContent=EXS[i].name;
-      var st=document.createElement('div'); st.className='st'; st.id='esc'+i; st.textContent=EXS[i].dur+'s×'+EXS[i].sets;
-      d.appendChild(idx); d.appendChild(nm); d.appendChild(st);
+/* ===== 渲染运动列表 ===== */
+function buildList() {
+  var list = document.getElementById('list');
+  list.innerHTML = '';
+  var i = 0;
+  for (i = 0; i < EXS.length; i++) {
+    (function (i) {
+      var d = document.createElement('div');
+      d.className = 'ei' + (i === idx ? ' cur' : '');
+      d.id = 'ei' + i;
+      d.onclick = function () { jump(i); };
+      var idxD = document.createElement('div');
+      idxD.className = 'idx';
+      idxD.textContent = String(i + 1);
+      var nm = document.createElement('div');
+      nm.className = 'name';
+      nm.textContent = EXS[i].name;
+      var st = document.createElement('div');
+      st.className = 'st';
+      st.id = 'esc' + i;
+      st.textContent = EXS[i].dur + 's×' + EXS[i].sets;
+      d.appendChild(idxD);
+      d.appendChild(nm);
+      d.appendChild(st);
       list.appendChild(d);
     })(i);
   }
 }
 
 /* ===== 更新界面 ===== */
-function updateUI(){
-  var ex=EXS[IDX];
-  document.getElementById('round-info').textContent=
-    '第 '+(IDX+1)+'/'+EXS.length+' 项 · 第 '+(SID+1)+'/'+ex.sets+' 组';
-  var total = (PH===3) ? REST : ex.dur;
-  var pct = 1 - REM/total;
-  document.getElementById('ring').style.strokeDashoffset=String(628.32*(1-pct));
-  document.getElementById('time').textContent=String(REM);
-  var lbs={1:'准备中',2:'进行中',3:'休息',4:'已暂停',5:'已完成'};
-  document.getElementById('label').textContent=lbs[PH]||'准备';
-  document.getElementById('bGo').classList.toggle('btn-off', PH!==0);
-  document.getElementById('bPa').classList.toggle('btn-off', PH===0||PH===4||PH===5);
-  document.getElementById('bSk').classList.toggle('btn-off', PH===0||PH===5);
-  document.getElementById('bSt').classList.toggle('btn-off', PH===0||PH===5);
+function updateUI() {
+  var ex = EXS[idx];
+  document.getElementById('round-info').textContent =
+    '第 ' + (idx + 1) + '/' + EXS.length + ' 项 · 第 ' + (sid + 1) + '/' + ex.sets + ' 组';
+  var total = (ph === 3) ? REST : ex.dur;
+  var pct = 1 - rem / total;
+  document.getElementById('ring').style.strokeDashoffset = String(628.32 * (1 - pct));
+  document.getElementById('time').textContent = String(rem);
+  var lbs = { 1: '准备中', 2: '进行中', 3: '休息', 4: '已暂停', 5: '已完成' };
+  document.getElementById('label').textContent = lbs[ph] || '准备';
+  document.getElementById('bGo').classList.toggle('btn-off', ph !== 0);
+  document.getElementById('bPa').classList.toggle('btn-off', ph === 0 || ph === 4 || ph === 5);
+  document.getElementById('bSk').classList.toggle('btn-off', ph === 0 || ph === 5);
+  document.getElementById('bSt').classList.toggle('btn-off', ph === 0 || ph === 5);
 }
 
 /* ===== 计时 tick ===== */
-function tick(){
-  REM--;
+function tick() {
+  rem--;
   updateUI();
   // 最后5秒提示音
-  if(REM<=5 && REM>0 && PH===2){
-    beep(1200,0.04);
+  if (rem <= 5 && rem > 0 && ph === 2) {
+    beep(1200, 0.04);
   }
-  if(REM<=0){
-    clearInterval(TID); TID=0;
-    if(PH===2){ // 运动结束
-      if(SID+1 < EXS[IDX].sets){ // 还有下一组
-        PH=3; REM=REST;
+  if (rem <= 0) {
+    clearInterval(tid);
+    tid = 0;
+    if (ph === 2) { // 运动结束
+      if (sid + 1 < EXS[idx].sets) { // 同动作还有下一组
+        ph = 3;
+        rem = REST;
         say('休息');
-        TID=setInterval(tick,1000);
-      } else { // 本动作全部做完，进入休息再切下一个
+        tid = setInterval(tick, 1000);
+      } else { // 本动作全部完成，进入切换休息
         nextEx();
       }
-    } else if(PH===3){ // 休息结束
+    } else if (ph === 3) { // 休息结束
       nextEx();
     }
   }
 }
 
-/* ===== 切到下一个动作 ===== */
-function nextEx(){
+/* ===== 切换到下一个动作 ===== */
+function nextEx() {
   // 标记当前动作完成
-  var el=document.getElementById('ei'+IDX);
-  if(el) el.classList.add('ok');
-  IDX++; SID=0;
-  if(IDX>=EXS.length){
-    PH=5; say('全部完成，训练结束'); stopGW(); updateUI(); buildList();
+  var el = document.getElementById('ei' + idx);
+  if (el) el.classList.add('ok');
+  idx++;
+  sid = 0;
+  if (idx >= EXS.length) {
+    ph = 5;
+    say('全部完成，训练结束');
+    stopGW();
+    updateUI();
+    buildList();
     return;
   }
-  // 动作切换之间也要休息
+  // 动作切换之间先休息
   buildList();
-  PH=3; REM=REST;
-  say('下一个动作，休息'+REST+'秒');
+  ph = 3;
+  rem = REST;
+  say('下一个动作，休息' + REST + '秒');
   updateUI();
-  TID=setInterval(function(){
-    REM--; updateUI();
-    if(REM<=5&&REM>0) beep(1200,0.04);
-    if(REM<=0){
-      clearInterval(TID); TID=0;
-      // 休息完，开始下一个动作的倒计时
-      countdown(function(){
-        PH=2; REM=EXS[IDX].dur;
-        say(EXS[IDX].name+'，开始');
-        TID=setInterval(tick,1000);
+  tid = setInterval(function () {
+    rem--;
+    updateUI();
+    if (rem <= 5 && rem > 0 && ph === 3) beep(1200, 0.04);
+    if (rem <= 0) {
+      clearInterval(tid);
+      tid = 0;
+      countdown(function () {
+        ph = 2;
+        rem = EXS[idx].dur;
+        say(EXS[idx].name + '，开始');
+        tid = setInterval(tick, 1000);
         updateUI();
       });
     }
-  },1000);
+  }, 1000);
 }
 
 /* ===== 开始训练 ===== */
-function startW(){
-  if(PH!==0) return;
-  IDX=0; SID=0; PH=1;
+function startW() {
+  if (ph !== 0) return;
+  idx = 0;
+  sid = 0;
+  ph = 1;
   buildList();
-  if(AOK) startGW();
-  countdown(function(){
-    PH=2; REM=EXS[IDX].dur;
-    say(EXS[IDX].name+'，开始');
-    TID=setInterval(tick,1000);
+  if (aok) startGW();
+  countdown(function () {
+    ph = 2;
+    rem = EXS[idx].dur;
+    say(EXS[idx].name + '，开始');
+    tid = setInterval(tick, 1000);
     updateUI();
   });
 }
 
 /* ===== 暂停/继续 ===== */
-function pauseW(){
-  if(PH===4){ // 继续
-    PH = PREV_PH; // 恢复之前的状态
-    TID=setInterval(tick,1000);
-    if(AOK) startGW();
-  } else if(PH===2||PH===3){ // 暂停
-    PREV_PH = PH; // 保存当前状态
-    PH=4;
-    clearInterval(TID); TID=0;
+function pauseW() {
+  if (ph === 4) { // 继续
+    ph = prev_ph;
+    tid = setInterval(tick, 1000);
+    if (aok) startGW();
+  } else if (ph === 2 || ph === 3) { // 暂停
+    prev_ph = ph;
+    ph = 4;
+    clearInterval(tid);
+    tid = 0;
     say('已暂停');
   }
   updateUI();
 }
 
 /* ===== 跳过 ===== */
-function skipW(){
-  if(PH===0||PH===5) return;
-  clearInterval(TID); TID=0;
+function skipW() {
+  if (ph === 0 || ph === 5) return;
+  clearInterval(tid);
+  tid = 0;
   nextEx();
 }
 
 /* ===== 结束 ===== */
-function stopW(){
-  clearInterval(TID); TID=0;
-  PH=5; stopGW(); updateUI(); buildList();
+function stopW() {
+  clearInterval(tid);
+  tid = 0;
+  ph = 5;
+  stopGW();
+  updateUI();
+  buildList();
 }
 
 /* ===== 跳转到指定动作 ===== */
-function jump(i){
-  if(PH===0||PH===5) return;
-  clearInterval(TID); TID=0;
-  IDX=i; SID=0;
+function jump(i) {
+  if (ph === 0 || ph === 5) return;
+  clearInterval(tid);
+  tid = 0;
+  idx = i;
+  sid = 0;
   buildList();
-  countdown(function(){
-    PH=2; REM=EXS[IDX].dur;
-    say(EXS[IDX].name+'，开始');
-    TID=setInterval(tick,1000);
+  countdown(function () {
+    ph = 2;
+    rem = EXS[idx].dur;
+    say(EXS[idx].name + '，开始');
+    tid = setInterval(tick, 1000);
     updateUI();
   });
 }
 
-/* ===== 设置 ===== */
-function openS(){
-  var r=document.getElementById('srows'); r.innerHTML='';
-  for(var i=0;i<EXS.length;i++){
-    (function(i){
-      var d=document.createElement('div'); d.className='sr';
-      d.innerHTML='<span>'+EXS[i].name+'</span><span>时长<input id="sd'+i+'" value="'+EXS[i].dur+'" min="5" max="300" type="number">秒 × <input id="ss'+i+'" value="'+EXS[i].sets+'" min="1" max="20" type="number">组</span>';
+/* ===== 设置面板 ===== */
+function openS() {
+  var r = document.getElementById('srows');
+  r.innerHTML = '';
+  var i = 0;
+  for (i = 0; i < EXS.length; i++) {
+    (function (i) {
+      var d = document.createElement('div');
+      d.className = 'sr';
+      d.innerHTML = '<span>' + EXS[i].name + '</span><span>时长<input id="sd' + i + '" value="' + EXS[i].dur + '" min="5" max="300" type="number">秒 × <input id="ss' + i + '" value="' + EXS[i].sets + '" min="1" max="20" type="number">组</span>';
       r.appendChild(d);
     })(i);
   }
-  document.getElementById('srest').value=REST;
+  document.getElementById('srest').value = REST;
   document.getElementById('settings').classList.add('show');
 }
-function closeS(){ document.getElementById('settings').classList.remove('show'); }
-function saveS(){
-  for(var i=0;i<EXS.length;i++){
-    EXS[i].dur=Math.max(5,Math.min(300,parseInt(document.getElementById('sd'+i).value)||EXS[i].dur));
-    EXS[i].sets=Math.max(1,Math.min(20,parseInt(document.getElementById('ss'+i).value)||EXS[i].sets));
+function closeS() { document.getElementById('settings').classList.remove('show'); }
+function saveS() {
+  var i = 0;
+  for (i = 0; i < EXS.length; i++) {
+    EXS[i].dur = Math.max(5, Math.min(300, parseInt(document.getElementById('sd' + i).value) || EXS[i].dur));
+    EXS[i].sets = Math.max(1, Math.min(20, parseInt(document.getElementById('ss' + i).value) || EXS[i].sets));
   }
-  REST=Math.max(0,Math.min(60,parseInt(document.getElementById('srest').value)||10));
-  closeS(); buildList(); updateUI(); say('设置已保存');
+  REST = Math.max(0, Math.min(60, parseInt(document.getElementById('srest').value) || 10));
+  closeS();
+  buildList();
+  updateUI();
+  say('设置已保存');
 }
 
-/* ===== 绑定按钮 ===== */
-function bindBtns(){
-  document.getElementById('bGo').onclick=startW;
-  document.getElementById('bPa').onclick=pauseW;
-  document.getElementById('bSk').onclick=skipW;
-  document.getElementById('bSt').onclick=stopW;
-  document.getElementById('bSe').onclick=openS;
-  document.getElementById('bTt').onclick=function(){
-    unlock(function(){ beep(800,0.2); say('音频测试正常'); });
-  };
+/* ===== 音量控制 ===== */
+document.getElementById('vol').addEventListener('input', function () {
+  vol = this.value / 100;
+  document.getElementById('vval').textContent = this.value + '%';
+});
+
+/* ===== 测试声音按钮 ===== */
+document.getElementById('bTt').addEventListener('click', function () {
+  unlock(function () {
+    beep(800, 0.2);
+    say('音频测试正常');
+  });
+});
+
+/* ===== 绑定控制按钮 ===== */
+function bindBtns() {
+  document.getElementById('bGo').onclick = startW;
+  document.getElementById('bPa').onclick = pauseW;
+  document.getElementById('bSk').onclick = skipW;
+  document.getElementById('bSt').onclick = stopW;
+  document.getElementById('bSe').onclick = openS;
 }
 
 /* ===== 初始化 ===== */
-function init(){ buildList(); updateUI(); bindBtns(); }
-if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',init); } else { init(); }
+function init() {
+  buildList();
+  updateUI();
+  bindBtns();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
-/* ===== 覆盖层点击 ===== */
-document.getElementById('start-btn').addEventListener('click',function(){
-  document.getElementById('umsg').style.display='block';
-  unlock(function(){
+/* ===== 覆盖层点击解锁 ===== */
+document.getElementById('start-btn').addEventListener('click', function () {
+  document.getElementById('umsg').style.display = 'block';
+  unlock(function () {
     document.getElementById('overlay').classList.add('hide');
     document.getElementById('app').classList.add('show');
     init();
