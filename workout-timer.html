@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>运动跟练计时器 v9</title>
+<title>运动跟练计时器 v10</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
@@ -16,11 +16,6 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 /* 主界面 */
 #app{width:100%;height:100%;display:none;flex-direction:column;align-items:center;padding:8px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #app.show{display:flex}
-
-/* 音频状态指示 */
-#audio-status{font-size:0.7em;padding:2px 8px;border-radius:8px;margin-bottom:4px}
-#audio-status.ok{color:#0f0;border:1px solid #0f0}
-#audio-status.no{color:#f44;border:1px solid #f44}
 
 #top{width:100%;max-width:400px;text-align:center;padding:2px 0}
 #top h1{font-size:1.1em;margin-bottom:1px}
@@ -36,11 +31,11 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 #label{font-size:0.85em;color:#ccc;margin-top:2px}
 
 /* 3-2-1倒计时覆盖层 */
-#countdown-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:88888;flex-direction:column}
-#countdown-overlay.show{display:flex!important}
-#countdown-num{font-size:7em;font-weight:bold;color:#00d2ff;text-shadow:0 0 40px rgba(0,210,255,0.9);animation:pulse 1s ease-in-out}
+#cd-ol{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:88888;flex-direction:column}
+#cd-ol.show{display:flex !important}
+#cd-num{font-size:7em;font-weight:bold;color:#00d2ff;text-shadow:0 0 40px rgba(0,210,255,0.9);animation:pulse 1s ease-in-out}
 @keyframes pulse{0%{transform:scale(1.8);opacity:0}30%{transform:scale(1);opacity:1}100%{transform:scale(0.95);opacity:0.85}}
-#countdown-text{font-size:1.1em;color:#ccc;margin-top:15px}
+#cd-txt{font-size:1.1em;color:#ccc;margin-top:15px}
 
 /* 控制按钮 */
 #btns{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap;justify-content:center}
@@ -61,551 +56,414 @@ body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#fff;displ
 /* 设置面板 */
 #settings{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;z-index:77777;overflow-y:auto}
 #settings.show{display:block}
-#settings-inner{max-width:400px;margin:15px auto;padding:12px;background:#1a1a2e;border-radius:12px}
-#settings-inner h2{text-align:center;margin-bottom:12px;font-size:1.05em}
-.set-row{display:flex;align-items:center;justify-content:space-between;margin:7px 0;font-size:0.85em}
-.set-row input{width:55px;padding:4px 6px;border-radius:6px;border:1px solid #555;background:#333;color:#fff;text-align:center;font-size:0.95em}
-#settings-btns{display:flex;gap:10px;margin-top:18px;justify-content:center}
+#si{max-width:400px;margin:15px auto;padding:12px;background:#1a1a2e;border-radius:12px}
+#si h2{text-align:center;margin-bottom:12px;font-size:1.05em}
+.sr{display:flex;align-items:center;justify-content:space-between;margin:7px 0;font-size:0.85em}
+.sr input{width:55px;padding:4px 6px;border-radius:6px;border:1px solid #555;background:#333;color:#fff;text-align:center;font-size:0.95em}
+#sbt{display:flex;gap:10px;margin-top:18px;justify-content:center}
 
-/* 音量控制 */
-#vol-ctrl{display:flex;align-items:center;gap:5px;margin:4px 0;font-size:0.75em;justify-content:center}
-#vol-ctrl input[type=range]{width:70px;accent-color:#00d2ff}
+/* 音量 */
+#vc{display:flex;align-items:center;gap:5px;margin:4px 0;font-size:0.75em;justify-content:center}
+#vc input[type=range]{width:70px;accent-color:#00d2ff}
 
-/* 版本号 */
 #ver{position:fixed;bottom:1px;right:4px;font-size:0.55em;color:#333;z-index:1}
 </style>
 </head>
 <body>
 
-<!-- 启动覆盖层 -->
 <div id="overlay">
   <div style="font-size:2.5em;margin-bottom:18px">🏃</div>
   <div style="font-size:1.2em;margin-bottom:10px">运动跟练计时器</div>
-  <div style="font-size:0.8em;color:#aaa;margin-bottom:25px;text-align:center;padding:0 20px">请点击下方按钮以解锁音频播放<br>（微信需要此步骤）</div>
+  <div style="font-size:0.8em;color:#aaa;margin-bottom:25px;text-align:center;padding:0 20px">请点击下方按钮解锁音频<br>（手机浏览器需要此步骤）</div>
   <div id="start-btn" style="padding:14px 36px;background:#00d2ff;color:#000;border-radius:25px;font-size:1.05em;font-weight:bold;cursor:pointer;user-select:none">点击开始</div>
-  <div id="unlock-msg" style="font-size:0.7em;color:#aaa;margin-top:15px;display:none">解锁中...</div>
+  <div id="umsg" style="font-size:0.7em;color:#aaa;margin-top:15px;display:none">解锁中...</div>
 </div>
 
-<!-- 3-2-1倒计时覆盖层 -->
-<div id="countdown-overlay">
-  <div id="countdown-num">3</div>
-  <div id="countdown-text">准备开始...</div>
+<div id="cd-ol">
+  <div id="cd-num">3</div>
+  <div id="cd-txt">准备开始...</div>
 </div>
 
-<!-- 主界面 -->
 <div id="app">
-  <div id="audio-status" class="no">🔇 音频未解锁（声音将不可用）</div>
   <div id="top">
     <h1>运动跟练</h1>
     <div id="round-info">第 1/6 项 · 第 1/X 组</div>
   </div>
-
   <div id="ring-wrap">
     <svg viewBox="0 0 220 220">
       <circle id="ring-bg" cx="110" cy="110" r="100"/>
-      <circle id="ring" cx="110" cy="110" r="100" stroke-dasharray="628.32" stroke-dashoffset="0"/>
+      <circle id="ring" cx="110" cy="110" r="100" stroke-dasharray="628.32"/>
     </svg>
     <div id="timer">
       <div id="time">60</div>
       <div id="label">准备</div>
     </div>
   </div>
-
-  <div id="vol-ctrl">
+  <div id="vc">
     <span>🔈</span>
     <input type="range" id="vol" min="0" max="100" value="70">
     <span>🔊</span>
-    <span id="vol-val">70%</span>
+    <span id="vval">70%</span>
   </div>
-
   <div id="btns">
-    <div class="btn" id="btnGo">开始训练</div>
-    <div class="btn btn-off" id="btnPause">暂停</div>
-    <div class="btn btn-off" id="btnSkip">跳过</div>
-    <div class="btn btn-off" id="btnStop">结束</div>
-    <div class="btn" id="btnSet">⚙️ 设置</div>
-    <div class="btn" id="btnTest" style="border-color:#fa0;color:#fa0">测试声音</div>
+    <div class="btn" id="bGo">开始训练</div>
+    <div class="btn btn-off" id="bPa">暂停</div>
+    <div class="btn btn-off" id="bSk">跳过</div>
+    <div class="btn btn-off" id="bSt">结束</div>
+    <div class="btn" id="bSe">⚙️ 设置</div>
+    <div class="btn" id="bTt" style="border-color:#fa0;color:#fa0">测试声音</div>
   </div>
-
   <div id="list"></div>
 </div>
 
-<!-- 设置面板 -->
 <div id="settings">
-  <div id="settings-inner">
+  <div id="si">
     <h2>训练设置</h2>
-    <div id="set-rows"></div>
-    <div style="margin-top:12px;font-size:0.8em;color:#aaa;text-align:center">休息时间（秒）：<input type="number" id="set-rest" value="10" min="0" max="60" style="width:50px;padding:4px;border-radius:6px;border:1px solid #555;background:#333;color:#fff;text-align:center"></div>
-    <div id="settings-btns">
-      <div class="btn" onclick="window.__saveSettings()" style="border-color:#0f0;color:#0f0">保存</div>
-      <div class="btn" onclick="window.__closeSettings()" style="border-color:#f44;color:#f44">取消</div>
+    <div id="srows"></div>
+    <div style="margin-top:12px;font-size:0.8em;color:#aaa;text-align:center">休息时间（秒）：<input type="number" id="srest" value="10" min="0" max="60" style="width:50px;padding:4px;border-radius:6px;border:1px solid #555;background:#333;color:#fff;text-align:center"></div>
+    <div id="sbt">
+      <div class="btn" onclick="saveS()" style="border-color:#0f0;color:#0f0">保存</div>
+      <div class="btn" onclick="closeS()" style="border-color:#f44;color:#f44">取消</div>
     </div>
   </div>
 </div>
 
-<div id="ver">v9 — 如看不到此字样说明是旧版缓存</div>
-
-<!-- 隐藏的audio元素用于微信音频解锁 -->
-<audio id="silent-audio" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" preload="auto" playsinline muted></audio>
+<div id="ver">v10 — 如看不到此字样说明是旧版缓存</div>
 
 <script>
-/* ========== 全局状态 ========== */
+/* ===== 状态 ===== */
 var EXS = [
-  {name:"腰椎麦肯基疗法", dur:60, sets:3},
-  {name:"小燕飞", dur:30, sets:3},
-  {name:"侧平板支撑", dur:30, sets:3},
-  {name:"臀桥", dur:60, sets:3},
-  {name:"山羊挺身(靠墙版)", dur:20, sets:5},
-  {name:"平板支撑", dur:60, sets:2}
+  {name:"腰椎麦肯基疗法",dur:60,sets:3},
+  {name:"小燕飞",dur:30,sets:3},
+  {name:"侧平板支撑",dur:30,sets:3},
+  {name:"臀桥",dur:60,sets:3},
+  {name:"山羊挺身(靠墙版)",dur:20,sets:5},
+  {name:"平板支撑",dur:60,sets:2}
 ];
 var REST = 10;
-var IDX = 0;
-var SID = 0;
-var PHASE = 0;  // 0=未开始 1=倒计时中 2=运动中 3=休息中 4=暂停 5=完成
-var REMAIN = 0;
-var TIMER = null;
-var AC = null;
-var AUDIO_OK = false;
+var IDX = 0;   // 当前运动索引
+var SID = 0;   // 当前组（0-based）
+var PH  = 0;    // 0=未开始 1=倒计时中 2=运动中 3=休息中 4=暂停 5=完成
+var PREV_PH = 0; // 暂停前状态
+var REM = 0;    // 剩余秒数
+var TID = 0;    // setInterval ID
 var VOL = 0.7;
-var GW_PLAYING = false;
-var WAKE_LOCK = null;
+var AC = null;
+var AOK = false; // AudioContext 是否可用
 
-/* ========== 音频状态显示 ========== */
-function updateAudioStatus(){
-  var el = document.getElementById('audio-status');
-  if(AUDIO_OK){
-    el.className = 'ok';
-    el.textContent = '🔊 音频已解锁';
-  } else {
-    el.className = 'no';
-    el.textContent = '🔇 音频未解锁（声音将不可用）';
-  }
-}
-
-/* ========== 音频解锁（微信兼容） ========== */
-function unlockAudio(cb){
+/* ===== 音频解锁 ===== */
+function unlock(cb){
   var done = false;
-  function finish(){
-    if(done) return;
-    done = true;
-    AUDIO_OK = true;
-    updateAudioStatus();
-    if(cb) cb();
-  }
-
-  // 方法1：AudioContext + 静音buffer
+  function ok(){ if(done) return; done=true; AOK=true; if(cb) cb(); }
   try{
     if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
-    var buf = AC.createBuffer(1, 1, 22050);
-    var src = AC.createBufferSource();
-    src.buffer = buf;
-    src.connect(AC.destination);
-    src.start(0);
-    if(AC.state==='suspended'){
-      AC.resume().then(finish).catch(finish);
-    } else {
-      finish();
-    }
+    var buf = AC.createBuffer(1,1,22050);
+    var src = AC.createBufferSource(); src.buffer=buf; src.connect(AC.destination); src.start(0);
+    if(AC.state==='suspended') AC.resume().then(ok).catch(ok);
+    else ok();
   }catch(e){}
-
-  // 方法2：<audio> 元素播放（微信更兼容）
-  try{
-    var aud = document.getElementById('silent-audio');
-    if(aud){
-      aud.volume = 0.01;
-      var p = aud.play();
-      if(p) p.then(finish).catch(finish);
-      else finish();
-    }
-  }catch(e){}
-
-  // 备用：100ms后强制完成
-  setTimeout(finish, 150);
+  setTimeout(ok,200);
 }
 
-/* ========== 蜂鸣声 ========== */
-function beep(freq, dur, type){
-  if(!AUDIO_OK) return;
+/* ===== 蜂鸣 ===== */
+function beep(f,hz,dur){
   try{
     if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
     if(AC.state==='suspended') AC.resume();
-    var osc = AC.createOscillator();
-    var gain = AC.createGain();
-    osc.type = type||'sine';
-    osc.frequency.value = freq||800;
-    gain.gain.value = VOL*0.25;
-    osc.connect(gain);
-    gain.connect(AC.destination);
-    var t = AC.currentTime;
-    osc.start(t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t+(dur||0.12));
-    osc.stop(t+(dur||0.12));
+    var o=AC.createOscillator(), g=AC.createGain();
+    o.type='sine'; o.frequency.value=hz||800;
+    g.gain.value=VOL*0.3;
+    o.connect(g); g.connect(AC.destination);
+    var t=AC.currentTime;
+    o.start(t);
+    g.gain.exponentialRampToValueAtTime(0.001, t+(dur||0.12));
+    o.stop(t+(dur||0.12));
   }catch(e){}
 }
 
-/* ========== 语音播报 ========== */
-function speak(txt){
-  if(!('speechSynthesis' in window)) return;
+/* ===== 语音 ===== */
+function say(t){
   try{
     window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(txt);
-    u.lang = 'zh-CN';
-    u.rate = 1.0;
-    u.volume = 1;
+    var u=new SpeechSynthesisUtterance(t);
+    u.lang='zh-CN'; u.rate=1.0; u.volume=1;
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
 
-/* ========== Go West 风格背景音乐（Web Audio） ========== */
+/* ===== Go West 简易节奏 ===== */
+var gwIv = 0;
 function startGW(){
-  if(GW_PLAYING) return;
-  if(!AUDIO_OK) return;
+  if(gwIv) return;
+  if(!AOK) return;
   try{
     if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
     if(AC.state==='suspended') AC.resume();
-    var chords = [
-      [130.81, 155.56, 196.00],
-      [103.83, 130.81, 155.56],
-      [155.56, 196.00, 233.08],
-      [116.54, 146.83, 174.61]
-    ];
-    var beatLen = 0.5;
-    var chordLen = 2.0;
-
-    function fillBuf(){
-      if(!GW_PLAYING) return;
-      var ac = AC;
-      var now = ac.currentTime;
-      var startT = now + 0.05;
-      for(var loop=0; loop<60; loop++){
-        for(var c=0; c<4; c++){
-          var t = startT + loop*8*beatLen + c*chordLen;
-          if(t > now + 4) break; // 只预填4秒
-          var osc1=ac.createOscillator(), osc2=ac.createOscillator(), osc3=ac.createOscillator();
-          var g=ac.createGain();
-          osc1.type='sine'; osc2.type='sine'; osc3.type='sine';
-          osc1.frequency.value=chords[c][0];
-          osc2.frequency.value=chords[c][1];
-          osc3.frequency.value=chords[c][2];
-          osc1.connect(g); osc2.connect(g); osc3.connect(g);
-          g.connect(ac.destination);
-          g.gain.value=0;
-          osc1.start(t); osc2.start(t); osc3.start(t);
-          g.gain.linearRampToValueAtTime(VOL*0.05, t+0.08);
-          g.gain.setValueAtTime(VOL*0.05, t+chordLen-0.08);
-          g.gain.linearRampToValueAtTime(0, t+chordLen+0.01);
-          osc1.stop(t+chordLen+0.05); osc2.stop(t+chordLen+0.05); osc3.stop(t+chordLen+0.05);
-          // kick鼓
-          for(var b=0;b<4;b++){
-            var bt=t+b*beatLen;
-            if(b===0||b===2){
-              var ko=ac.createOscillator(),kg=ac.createGain();
-              ko.type='sine'; ko.frequency.value=150;
-              ko.frequency.exponentialRampToValueAtTime(35,bt+0.07);
-              kg.gain.value=VOL*0.12;
-              ko.connect(kg); kg.connect(ac.destination);
-              ko.start(bt);
-              kg.gain.exponentialRampToValueAtTime(0.001,bt+0.1);
-              ko.stop(bt+0.12);
-            }
-            // hi-hat
-            var ho=ac.createOscillator(),hg=ac.createGain();
-            ho.type='square'; ho.frequency.value=7500;
-            hg.gain.value=VOL*0.015;
-            ho.connect(hg); hg.connect(ac.destination);
-            ho.start(bt); hg.gain.exponentialRampToValueAtTime(0.001,bt+0.025);
-            ho.stop(bt+0.03);
-          }
+    // 用 setInterval 每 0.5s 触发一个短音符，组成节奏
+    var step = 0;
+    gwIv = setInterval(function(){
+      try{
+        if(!AC) return;
+        if(AC.state==='suspended') AC.resume();
+        var t = AC.currentTime;
+        // 贝斯音：Cm->Ab->Eb->Bb 每2秒换一个和弦
+        var chords = [[130.81,155.56,196],[103.83,130.81,155.56],[155.56,196,233.08],[116.54,146.83,174.61]];
+        var ci = Math.floor((step%8)/2); // 每2步（1秒）换和弦，8步一循环
+        var freq = chords[ci][0]; // 贝斯音
+        // 贝斯
+        var o1=AC.createOscillator(), g1=AC.createGain();
+        o1.type='sine'; o1.frequency.value=freq;
+        g1.gain.value=VOL*0.08;
+        o1.connect(g1); g1.connect(AC.destination);
+        o1.start(t); g1.gain.exponentialRampToValueAtTime(0.001,t+0.45); o1.stop(t+0.48);
+        //  hi-hat
+        if(step%2===0){
+          var o2=AC.createOscillator(),g2=AC.createGain();
+          o2.type='square'; o2.frequency.value=8000;
+          g2.gain.value=VOL*0.02;
+          o2.connect(g2); g2.connect(AC.destination);
+          o2.start(t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.03); o2.stop(t+0.04);
         }
-      }
-      // 4秒后重新填充
-      if(GW_PLAYING) setTimeout(fillBuf, 3000);
-    }
-    GW_PLAYING = true;
-    fillBuf();
+        //  kick (每2步一次)
+        if(step%4===0){
+          var o3=AC.createOscillator(),g3=AC.createGain();
+          o3.type='sine'; o3.frequency.value=150;
+          o3.frequency.exponentialRampToValueAtTime(40,t+0.08);
+          g3.gain.value=VOL*0.15;
+          o3.connect(g3); g3.connect(AC.destination);
+          o3.start(t); g3.gain.exponentialRampToValueAtTime(0.001,t+0.1); o3.stop(t+0.12);
+        }
+        step++;
+      }catch(e){}
+    }, 500);
   }catch(e){}
 }
+function stopGW(){ if(gwIv){clearInterval(gwIv);gwIv=0;} }
 
-function stopGW(){
-  GW_PLAYING = false;
-}
-
-/* ========== 3-2-1 倒计时 ========== */
-function countdownReady(cb){
-  var overlay = document.getElementById('countdown-overlay');
-  var numEl = document.getElementById('countdown-num');
-  var textEl = document.getElementById('countdown-text');
-  var ex = EXS[IDX];
-  textEl.textContent = ex.name + ' — 准备';
-  var count = 3;
-  overlay.classList.add('show');
-  numEl.textContent = String(count);
-  // 触发动画重置
-  numEl.style.animation = 'none';
-  void numEl.offsetWidth;
-  numEl.style.animation = 'pulse 1s ease-in-out';
-  speak(String(count));
-  beep(600, 0.08);
-
-  var iv = setInterval(function(){
-    count--;
-    if(count > 0){
-      numEl.textContent = String(count);
-      numEl.style.animation = 'none';
-      void numEl.offsetWidth;
-      numEl.style.animation = 'pulse 1s ease-in-out';
-      speak(String(count));
-      beep(600, 0.08);
+/* ===== 3-2-1 倒计时 ===== */
+function countdown(cb){
+  var ol=document.getElementById('cd-ol');
+  var num=document.getElementById('cd-num');
+  var txt=document.getElementById('cd-txt');
+  var ex=EXS[IDX];
+  // 先报动作名称
+  txt.textContent = ex.name + ' — 准备';
+  say(ex.name + '，准备');
+  // 等语音播完再开始倒计时（延迟1.5秒）
+  setTimeout(function(){
+    var c = 3;
+    ol.classList.add('show');
+    num.textContent = String(c);
+    num.style.animation='none'; void num.offsetWidth;
+    num.style.animation='pulse 1s ease-in-out';
+    say(String(c)); beep(600,0.08);
+    var iv = setInterval(function(){
+      c--;
+      if(c>0){
+        num.textContent=String(c);
+        num.style.animation='none'; void num.offsetWidth;
+        num.style.animation='pulse 1s ease-in-out';
+        say(String(c)); beep(600,0.08);
     } else {
       clearInterval(iv);
-      overlay.classList.remove('show');
-      speak('开始');
-      beep(900, 0.15);
+      ol.classList.remove('show');
+      beep(900,0.15);
       if(cb) cb();
     }
-  }, 1000);
+    }, 1000);
+  }, 1500);
 }
 
-/* ========== 渲染运动列表 ========== */
+/* ===== 渲染列表 ===== */
 function buildList(){
-  var list = document.getElementById('list');
-  list.innerHTML = '';
-  EXS.forEach(function(ex, i){
-    var d = document.createElement('div');
-    d.className = 'ei' + (i===IDX?' cur':'');
-    d.id = 'ei'+i;
-    d.onclick = function(){ window.__jump(i); };
-    var idx = document.createElement('div');
-    idx.className = 'idx';
-    idx.textContent = String(i+1);
-    var name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = ex.name;
-    var st = document.createElement('div');
-    st.className = 'st';
-    st.id = 'esc'+i;
-    st.textContent = ex.dur+'s×'+ex.sets;
-    d.appendChild(idx);
-    d.appendChild(name);
-    d.appendChild(st);
-    list.appendChild(d);
-  });
-}
-
-/* ========== 更新界面 ========== */
-function updateUI(){
-  var ex = EXS[IDX];
-  document.getElementById('round-info').textContent =
-    '第 '+(IDX+1)+'/'+EXS.length+' 项 · 第 '+(SID+1)+'/'+ex.sets+' 组';
-  var total = (PHASE===3) ? REST : ex.dur;
-  var pct = 1 - REMAIN/total;
-  document.getElementById('ring').style.strokeDashoffset = String(628.32*(1-pct));
-  document.getElementById('time').textContent = String(REMAIN);
-  var labels = {1:'准备中',2:'进行中',3:'休息',4:'已暂停',5:'已完成'};
-  document.getElementById('label').textContent = labels[PHASE]||'准备';
-  document.getElementById('btnGo').classList.toggle('btn-off', PHASE!==0);
-  document.getElementById('btnPause').classList.toggle('btn-off', PHASE===0||PHASE===4||PHASE===5);
-  document.getElementById('btnSkip').classList.toggle('btn-off', PHASE===0||PHASE===5);
-  document.getElementById('btnStop').classList.toggle('btn-off', PHASE===0||PHASE===5);
-}
-
-/* ========== 主计时 ========== */
-function tick(){
-  REMAIN--;
-  updateUI();
-  // 最后5秒提示
-  if(REMAIN<=5 && REMAIN>0 && PHASE===2){
-    beep(1200, 0.04, 'sine');
+  var list=document.getElementById('list');
+  list.innerHTML='';
+  for(var i=0;i<EXS.length;i++){
+    (function(i){
+      var d=document.createElement('div');
+      d.className='ei'+(i===IDX?' cur':'');
+      d.id='ei'+i;
+      d.onclick=function(){ jump(i); };
+      var idx=document.createElement('div'); idx.className='idx'; idx.textContent=String(i+1);
+      var nm=document.createElement('div'); nm.className='name'; nm.textContent=EXS[i].name;
+      var st=document.createElement('div'); st.className='st'; st.id='esc'+i; st.textContent=EXS[i].dur+'s×'+EXS[i].sets;
+      d.appendChild(idx); d.appendChild(nm); d.appendChild(st);
+      list.appendChild(d);
+    })(i);
   }
-  if(REMAIN <= 0){
-    clearInterval(TIMER);
-    TIMER = null;
-    if(PHASE===2){
-      if(SID+1 < EXS[IDX].sets){
-        PHASE = 3;
-        REMAIN = REST;
-        speak('休息');
-        TIMER = setInterval(tick, 1000);
-      } else {
+}
+
+/* ===== 更新界面 ===== */
+function updateUI(){
+  var ex=EXS[IDX];
+  document.getElementById('round-info').textContent=
+    '第 '+(IDX+1)+'/'+EXS.length+' 项 · 第 '+(SID+1)+'/'+ex.sets+' 组';
+  var total = (PH===3) ? REST : ex.dur;
+  var pct = 1 - REM/total;
+  document.getElementById('ring').style.strokeDashoffset=String(628.32*(1-pct));
+  document.getElementById('time').textContent=String(REM);
+  var lbs={1:'准备中',2:'进行中',3:'休息',4:'已暂停',5:'已完成'};
+  document.getElementById('label').textContent=lbs[PH]||'准备';
+  document.getElementById('bGo').classList.toggle('btn-off', PH!==0);
+  document.getElementById('bPa').classList.toggle('btn-off', PH===0||PH===4||PH===5);
+  document.getElementById('bSk').classList.toggle('btn-off', PH===0||PH===5);
+  document.getElementById('bSt').classList.toggle('btn-off', PH===0||PH===5);
+}
+
+/* ===== 计时 tick ===== */
+function tick(){
+  REM--;
+  updateUI();
+  // 最后5秒提示音
+  if(REM<=5 && REM>0 && PH===2){
+    beep(1200,0.04);
+  }
+  if(REM<=0){
+    clearInterval(TID); TID=0;
+    if(PH===2){ // 运动结束
+      if(SID+1 < EXS[IDX].sets){ // 还有下一组
+        PH=3; REM=REST;
+        say('休息');
+        TID=setInterval(tick,1000);
+      } else { // 本动作全部做完，进入休息再切下一个
         nextEx();
       }
-    } else if(PHASE===3){
+    } else if(PH===3){ // 休息结束
       nextEx();
     }
   }
 }
 
+/* ===== 切到下一个动作 ===== */
 function nextEx(){
-  SID++;
-  if(SID >= EXS[IDX].sets){
-    var el = document.getElementById('ei'+IDX);
-    if(el) el.classList.add('ok');
-    IDX++;
-    SID = 0;
-  }
-  if(IDX >= EXS.length){
-    PHASE = 5;
-    speak('全部完成，训练结束');
-    stopGW();
-    releaseWakeLock();
-    updateUI();
-    buildList();
+  // 标记当前动作完成
+  var el=document.getElementById('ei'+IDX);
+  if(el) el.classList.add('ok');
+  IDX++; SID=0;
+  if(IDX>=EXS.length){
+    PH=5; say('全部完成，训练结束'); stopGW(); updateUI(); buildList();
     return;
   }
+  // 动作切换之间也要休息
   buildList();
-  countdownReady(function(){
-    PHASE = 2;
-    REMAIN = EXS[IDX].dur;
-    speak(EXS[IDX].name + '，开始');
-    TIMER = setInterval(tick, 1000);
-    updateUI();
-  });
+  PH=3; REM=REST;
+  say('下一个动作，休息'+REST+'秒');
+  updateUI();
+  TID=setInterval(function(){
+    REM--; updateUI();
+    if(REM<=5&&REM>0) beep(1200,0.04);
+    if(REM<=0){
+      clearInterval(TID); TID=0;
+      // 休息完，开始下一个动作的倒计时
+      countdown(function(){
+        PH=2; REM=EXS[IDX].dur;
+        say(EXS[IDX].name+'，开始');
+        TID=setInterval(tick,1000);
+        updateUI();
+      });
+    }
+  },1000);
 }
 
-/* ========== 控制函数 ========== */
+/* ===== 开始训练 ===== */
 function startW(){
-  if(PHASE!==0) return;
-  IDX = 0; SID = 0; PHASE = 1;
+  if(PH!==0) return;
+  IDX=0; SID=0; PH=1;
   buildList();
-  if(AUDIO_OK) startGW();
-  requestWakeLock();
-  countdownReady(function(){
-    PHASE = 2;
-    REMAIN = EXS[IDX].dur;
-    speak(EXS[IDX].name + '，开始');
-    TIMER = setInterval(tick, 1000);
+  if(AOK) startGW();
+  countdown(function(){
+    PH=2; REM=EXS[IDX].dur;
+    say(EXS[IDX].name+'，开始');
+    TID=setInterval(tick,1000);
     updateUI();
   });
 }
 
+/* ===== 暂停/继续 ===== */
 function pauseW(){
-  if(PHASE===4){
-    PHASE = (REMAIN === REST) ? 3 : 2;
-    TIMER = setInterval(tick, 1000);
-    if(AUDIO_OK) startGW();
-    requestWakeLock();
-  } else if(PHASE===2||PHASE===3){
-    PHASE = 4;
-    clearInterval(TIMER); TIMER = null;
-    speak('已暂停');
+  if(PH===4){ // 继续
+    PH = PREV_PH; // 恢复之前的状态
+    TID=setInterval(tick,1000);
+    if(AOK) startGW();
+  } else if(PH===2||PH===3){ // 暂停
+    PREV_PH = PH; // 保存当前状态
+    PH=4;
+    clearInterval(TID); TID=0;
+    say('已暂停');
   }
   updateUI();
 }
 
+/* ===== 跳过 ===== */
 function skipW(){
-  if(PHASE===0||PHASE===5) return;
-  clearInterval(TIMER); TIMER = null;
+  if(PH===0||PH===5) return;
+  clearInterval(TID); TID=0;
   nextEx();
 }
 
+/* ===== 结束 ===== */
 function stopW(){
-  clearInterval(TIMER); TIMER = null;
-  PHASE = 5; stopGW(); releaseWakeLock();
-  updateUI(); buildList();
+  clearInterval(TID); TID=0;
+  PH=5; stopGW(); updateUI(); buildList();
 }
 
-function jumpTo(i){
-  if(PHASE===0||PHASE===5) return;
-  clearInterval(TIMER); TIMER = null;
-  IDX = i; SID = 0;
+/* ===== 跳转到指定动作 ===== */
+function jump(i){
+  if(PH===0||PH===5) return;
+  clearInterval(TID); TID=0;
+  IDX=i; SID=0;
   buildList();
-  countdownReady(function(){
-    PHASE = 2;
-    REMAIN = EXS[IDX].dur;
-    speak(EXS[IDX].name + '，开始');
-    TIMER = setInterval(tick, 1000);
+  countdown(function(){
+    PH=2; REM=EXS[IDX].dur;
+    say(EXS[IDX].name+'，开始');
+    TID=setInterval(tick,1000);
     updateUI();
   });
 }
 
-/* ========== 设置 ========== */
-function openSettings(){
-  var rows = document.getElementById('set-rows');
-  rows.innerHTML = '';
-  EXS.forEach(function(ex,i){
-    var d = document.createElement('div');
-    d.className = 'set-row';
-    d.innerHTML = '<span>'+ex.name+'</span><span>时长<input id="sdur'+i+'" value="'+ex.dur+'" min="5" max="300" type="number">秒 × <input id="sset'+i+'" value="'+ex.sets+'" min="1" max="20" type="number">组</span>';
-    rows.appendChild(d);
-  });
-  document.getElementById('set-rest').value = REST;
+/* ===== 设置 ===== */
+function openS(){
+  var r=document.getElementById('srows'); r.innerHTML='';
+  for(var i=0;i<EXS.length;i++){
+    (function(i){
+      var d=document.createElement('div'); d.className='sr';
+      d.innerHTML='<span>'+EXS[i].name+'</span><span>时长<input id="sd'+i+'" value="'+EXS[i].dur+'" min="5" max="300" type="number">秒 × <input id="ss'+i+'" value="'+EXS[i].sets+'" min="1" max="20" type="number">组</span>';
+      r.appendChild(d);
+    })(i);
+  }
+  document.getElementById('srest').value=REST;
   document.getElementById('settings').classList.add('show');
 }
-
-function closeSettings(){ document.getElementById('settings').classList.remove('show'); }
-
-function saveSettings(){
-  EXS.forEach(function(ex,i){
-    ex.dur = Math.max(5, Math.min(300, parseInt(document.getElementById('sdur'+i).value)||ex.dur));
-    ex.sets = Math.max(1, Math.min(20, parseInt(document.getElementById('sset'+i).value)||ex.sets));
-  });
-  REST = Math.max(0, Math.min(60, parseInt(document.getElementById('set-rest').value)||10));
-  closeSettings(); buildList(); updateUI();
-  speak('设置已保存');
-}
-
-/* ========== Wake Lock ========== */
-function requestWakeLock(){
-  if('wakeLock' in navigator){
-    navigator.wakeLock.request('screen').then(function(l){ WAKE_LOCK=l; }).catch(function(){});
+function closeS(){ document.getElementById('settings').classList.remove('show'); }
+function saveS(){
+  for(var i=0;i<EXS.length;i++){
+    EXS[i].dur=Math.max(5,Math.min(300,parseInt(document.getElementById('sd'+i).value)||EXS[i].dur));
+    EXS[i].sets=Math.max(1,Math.min(20,parseInt(document.getElementById('ss'+i).value)||EXS[i].sets));
   }
-  if(!window._wkVid){
-    var v = document.createElement('video');
-    v.setAttribute('playsinline',''); v.setAttribute('muted','');
-    v.src = 'data:video/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChYECGFOAZwH/////////FUmpZpkq17GDD0JATYCGQ2hyb21lV0WvcmJCgcIAgQJhAcEAwJbCAN8QgbhAuYBAAC7AUwAIFgHcAGAAYWEgQJaCADsIROiIACDmgGAAAgEAA0IAgAVBAgARlWgBpgsQBxAAIAZA9gQABAMICAA=';
-    v.style.cssText = 'position:fixed;top:-1px;left:-1px;width:1px;height:1px;opacity:0.01';
-    document.body.appendChild(v);
-    v.play().catch(function(){});
-    window._wkVid = v;
-  }
-}
-function releaseWakeLock(){
-  if(WAKE_LOCK) WAKE_LOCK.release();
-  if(window._wkVid){ window._wkVid.pause(); window._wkVid=null; }
+  REST=Math.max(0,Math.min(60,parseInt(document.getElementById('srest').value)||10));
+  closeS(); buildList(); updateUI(); say('设置已保存');
 }
 
-/* ========== 全局暴露 ========== */
-window.__go=startW; window.__pause=pauseW; window.__skip=skipW; window.__stop=stopW;
-window.__restart=function(){ if(PHASE===5||PHASE===4){ PHASE=0;IDX=0;SID=0;buildList();updateUI(); }};
-window.__jump=jumpTo;
-window.__openSettings=openSettings; window.__closeSettings=closeSettings; window.__saveSettings=saveSettings;
-
-/* ========== 音量 ========== */
-document.getElementById('vol').addEventListener('input', function(){
-  VOL = this.value/100;
-  document.getElementById('vol-val').textContent = this.value+'%';
-});
-
-/* ========== 测试声音按钮 ========== */
-document.getElementById('btnTest').addEventListener('click', function(){
-  unlockAudio(function(){
-    beep(800, 0.2);
-    speak('音频测试正常');
-  });
-});
-
-/* ========== 绑定按钮 ========== */
+/* ===== 绑定按钮 ===== */
 function bindBtns(){
-  document.getElementById('btnGo').onclick = window.__go;
-  document.getElementById('btnPause').onclick = window.__pause;
-  document.getElementById('btnSkip').onclick = window.__skip;
-  document.getElementById('btnStop').onclick = window.__stop;
-  document.getElementById('btnSet').onclick = window.__openSettings;
+  document.getElementById('bGo').onclick=startW;
+  document.getElementById('bPa').onclick=pauseW;
+  document.getElementById('bSk').onclick=skipW;
+  document.getElementById('bSt').onclick=stopW;
+  document.getElementById('bSe').onclick=openS;
+  document.getElementById('bTt').onclick=function(){
+    unlock(function(){ beep(800,0.2); say('音频测试正常'); });
+  };
 }
 
-/* ========== 初始化 ========== */
-function init(){
-  buildList(); updateUI(); bindBtns(); updateAudioStatus();
-}
+/* ===== 初始化 ===== */
+function init(){ buildList(); updateUI(); bindBtns(); }
+if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',init); } else { init(); }
 
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', init);
-} else { init(); }
-
-/* ========== 覆盖层点击 ========== */
-document.getElementById('start-btn').addEventListener('click', function(){
-  document.getElementById('unlock-msg').style.display = 'block';
-  unlockAudio(function(){
+/* ===== 覆盖层点击 ===== */
+document.getElementById('start-btn').addEventListener('click',function(){
+  document.getElementById('umsg').style.display='block';
+  unlock(function(){
     document.getElementById('overlay').classList.add('hide');
     document.getElementById('app').classList.add('show');
     init();
