@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>腰背康复跟练</title>
+<style>
+body { background:#0a1628; color:white; font-family:sans-serif; margin:0; padding:20px; }
+#startPage { text-align:center; padding-top:100px; }
+#startPage h1 { font-size:2em; margin-bottom:30px; }
+#startBtn { font-size:1.5em; padding:20px 60px; background:#2979ff; color:white; border:none; border-radius:16px; cursor:pointer; }
+#mainPage { display:none; text-align:center; }
+#timer { font-size:4em; margin:30px 0; }
+#exName { font-size:1.5em; margin:20px 0; }
+button { font-size:1.2em; margin:10px; padding:15px 30px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div id="startPage">
+  <h1>🏋️ 腰背康复跟练</h1>
+  <button id="startBtn" onclick="start()">开始训练</button>
+</div>
+
+<div id="mainPage">
+  <div id="exName">准备</div>
+  <div id="timer">00</div>
+  <div>
+    <button onclick="pause()">暂停</button>
+    <button onclick="skip()">跳过</button>
+    <button onclick="stop()">停止</button>
+  </div>
+</div>
+
+<script>
+var exercises = [
+  {name:'猫牛式', sec:30},
+  {name:'膝胸式', sec:30},
+  {name:'仰卧扭腰', sec:30},
+  {name:'鸟狗式', sec:30},
+  {name:'臀桥', sec:30},
+  {name:'儿童式放松', sec:30}
+];
+
+var idx = 0;
+var timer = null;
+var running = false;
+
+function start() {
+  alert('开始！');
+  document.getElementById('startPage').style.display = 'none';
+  document.getElementById('mainPage').style.display = 'block';
+  idx = 0;
+  runEx();
+}
+
+function runEx() {
+  if (idx >= exercises.length) {
+    alert('训练完成！');
+    stop();
+    return;
+  }
+  
+  var ex = exercises[idx];
+  document.getElementById('exName').textContent = ex.name;
+  document.getElementById('timer').textContent = ex.sec;
+  
+  var remain = ex.sec;
+  running = true;
+  
+  timer = setInterval(function() {
+    if (!running) return;
+    
+    remain--;
+    document.getElementById('timer').textContent = remain;
+    
+    if (remain <= 0) {
+      clearInterval(timer);
+      idx++;
+      setTimeout(runEx, 1000);
+    }
+  }, 1000);
+}
+
+function pause() {
+  running = !running;
+}
+
+function skip() {
+  clearInterval(timer);
+  idx++;
+  runEx();
+}
+
+function stop() {
+  clearInterval(timer);
+  running = false;
+  document.getElementById('mainPage').style.display = 'none';
+  document.getElementById('startPage').style.display = 'block';
+}
+
+// 确保按钮能点击
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('startBtn');
+  if (btn) {
+    btn.onclick = start;
+  }
+});
+</script>
+
+</body>
+</html>
